@@ -1,0 +1,29 @@
+Mar 18, 2022 06:02:24 USPS -4.14 0.0 -4.14
+Mar 14, 2022 11:07:14 CompletedTransfer from Chartway Federal Credit Union ending in  1139.14 0.0 1139.14
+Mar 14, 2022 09:17:29 L.A. Noire -- Complete Edition (Microsoft Xbox 360, 2011) 0.0 -1.0 -1.0
+Mar 10, 2022 01:07:25 Hold 0.0 0.0 0.0
+Mar 2, 2022 03:16:21 1 - 31 Mar 0.0 -59.95 -59.95
+
+Hurricane
+Fees:  -93.85999999999999   Net:  595.5400000000001 
+
+Sunset
+Fees:  -445.7   Net:  2779.9700000000007 
+
+Washington
+Fees:  -299.55   Net:  2449.41 
+
+700
+Fees:  -80.08999999999999   Net:  50.67999999999976 
+
+**************************************************
+700/Wash
+Fees:  -379.64   Net:  2500.0899999999997 
+
+**************************************************
+
+Total
+Fees:  -919.1999999999999   Net:  5875.6 
+
+*this does not include printed mistakes
+
