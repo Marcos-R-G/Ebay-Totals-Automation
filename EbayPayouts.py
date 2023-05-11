@@ -11,6 +11,8 @@ opts = Options()
 opts.add_experimental_option('debuggerAddress', '127.0.0.1:9250')
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
+months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
+
 
 def clean_text(string):  # Removes unwanted chars from string
     remove = ['$', ',']
@@ -49,8 +51,31 @@ def payout_table():  # Puts the payout date, id, and amount into an iterable dic
 
 def clean_description(description):  # Accounts for different errors that may occur in getting the titles
     description_list = list(map(str.strip, description.split('\n')))
+    # print(description_list)
+    if str(description_list[0]).startswith('Order '):
+        if str(description_list[2]).endswith('-') or str(description_list[2]).endswith('~') or str(description_list[2]).endswith('-') or str(description_list[2]).endswith('^') or str(description_list[2]).endswith('*'):
+            return str(description_list[2])
+        else:
+            pass
+
+    if str(description_list[0]).startswith('Shipping label for order'):
+        usps_label = list(map(str.strip, str(description_list[0]).split(' ')))[-1]
+        url = 'https://www.ebay.com/sh/ord/details?orderid=' + usps_label
+        driver.get(url)
+        time.sleep(.025)
+        # table = driver.find_element(By.XPATH, '//*[@id="s0"]/div[1]/div[1]/div[2]/table')
+        # table_row = table.find_elements(By.CSS_SELECTOR, "tr") #tbody
+        # # print(len(table_row))
+        # if len(table_row) >= 6:
+        #     return str(description_list[len(description_list) - 2])
+        title = driver.find_element(By.CSS_SELECTOR, '#itemInfo')
+        title_text = title.find_element(By.CSS_SELECTOR, '#itemInfo > div > div > div > div.lineItemCardInfo__summary > div.lineItemCardInfo__text > a')
+        return title_text.text
     if str(description_list[0]).startswith('Hold'):
         return str(description_list[0])
+
+    if str(description_list[2]).endswith('item)') or str(description_list[2]).endswith('items)'):
+        return "Multiple items"
     if str(description_list[0]).endswith('Box'):
         label = list(map(str.strip, str(description_list[0]).split(' ')))[-1]
         url = 'https://www.ebay.com/sh/ord/details?orderid=' + label
@@ -64,30 +89,12 @@ def clean_description(description):  # Accounts for different errors that may oc
         return title_text.text
 
     if str(description_list[0]).startswith('Transfer'):
-        return str(description_list[len(description_list) - 4])
+        return "Transfer"
 
-    if str(description_list[0]).startswith('Shipping label for order'):
-        usps_label = list(map(str.strip, str(description_list[0]).split(' ')))[-1]
-        url = 'https://www.ebay.com/sh/ord/details?orderid=' + usps_label
-        driver.get(url)
-        time.sleep(.025)
-        title = driver.find_element(By.CSS_SELECTOR, '#s0 > div.card-old.card-total')
-        title_text = title.find_element(By.XPATH, '//*[@id="s0-1-4-16-74-9[0]"]/td[2]/div/p[1]/span[1]')
 
-        return title_text.text
     if str(description_list[0]).startswith('Refund'):
-        label = list(map(str.strip, str(description_list[0]).split(' ')))[-1]
-        url = 'https://www.ebay.com/sh/ord/details?orderid=' + label
-        driver.get(url)
-        title = driver.find_element(By.CSS_SELECTOR, '#s0')
-        title_text = title.find_element(By.XPATH, '//*[@id="s0-1-4-16-74-9[0]"]/td[2]/div/p[1]/span[2]')
-        url = 'https://www.ebay.com/itm/' + str(title_text.text).replace("(", "").replace(")", "")
-        driver.get(url)
-        title = driver.find_element(By.CSS_SELECTOR, '#LeftSummaryPanel > div.vi-swc-lsp > div:nth-child(1)')
-        title_text = title.find_element(By.CSS_SELECTOR, "h1")
-        return title_text.text
-
-    if str(description_list[0]).startswith('Shipping label for item'):
+        return "REFUND"
+    if str(description_list[0]).startswith('Shipping label for item') or str(description_list[0]).startswith('USPS Short Paid Fee') or str(description_list[0]).startswith('Insertion Fee for item number') :
         fedex_label = list(map(str.strip, str(description_list[0]).split(' ')))[-1]
         url = 'https://www.ebay.com/itm/' + fedex_label
         driver.get(url)
@@ -100,9 +107,9 @@ def clean_description(description):  # Accounts for different errors that may oc
         url = 'https://www.ebay.com/sh/ord/details?orderid=' + label
         driver.get(url)
         time.sleep(.025)
-        title = driver.find_element(By.CSS_SELECTOR, '#s0')
+        title = driver.find_element(By.CSS_SELECTOR, '#itemInfo > div > div > div > div.lineItemCardInfo__summary > div.lineItemCardInfo__text')
         title_text = title.find_element(By.CSS_SELECTOR,
-                                        "#s0-1-4-16-74-9\[0\] > td.details > div > p:nth-child(1) > span.item-title")
+                                        "#itemInfo > div > div > div > div.lineItemCardInfo__summary > div.lineItemCardInfo__text > a")
         return title_text.text
 
     elif str(description_list[len(description_list) - 2]) == 'opens in a new window or tab':
@@ -110,11 +117,10 @@ def clean_description(description):  # Accounts for different errors that may oc
         url = 'https://www.ebay.com/sh/ord/details?orderid=' + id
         driver.get(url)
         time.sleep(.025)
-        title = driver.find_element(By.CSS_SELECTOR, '#s0')
+        title = driver.find_element(By.CSS_SELECTOR, '#itemInfo')
         title_text = title.find_element(By.CSS_SELECTOR,
-                                        "#s0-1-4-16-74-9\[0\] > td.details > div > p:nth-child(1) > span.item-title")
+                                        '#itemInfo > div > div > div > div.lineItemCardInfo__summary > div.lineItemCardInfo__text > a')
         return title_text.text
-
     return str(description_list[len(description_list) - 2])
 
 
@@ -132,8 +138,13 @@ def fees_net():  # itterates through dictionary and goes into each link to see w
             empty_list.append(t[i].text)
         i = 0
         while i < (len(empty_list) - 6):  # Creates a dictionary from each item list of row based on title
-            month = empty_list[0][0:2]
-            while empty_list[i][0:2] != month:
+            month = empty_list[0][0:3]
+            prev_month = ""
+            for z in range(len(months)-1):
+                if months[z] == month:
+                    prev_month = months[z-1]
+
+            while empty_list[i][0:3] != month and empty_list[i][0:3] != prev_month:
                 i += 1
             copy_empty_dict = {
                 "date": empty_list[i],
@@ -264,6 +275,7 @@ def main():
     list_of_dicts = payout_table()
     net_fees_total(list_of_dicts)
     sys.stdout.close()
+    # fees_net()
 
 
 main()
@@ -272,4 +284,6 @@ main()
 # * = hurricane
 # ~ = 700
 # - = sunset
-# ^ = washington
+# ^ = washington]
+
+
